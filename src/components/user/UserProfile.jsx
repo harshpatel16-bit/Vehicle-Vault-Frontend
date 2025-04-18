@@ -91,6 +91,23 @@ export const UserProfile = () => {
 
 
 
+                <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem",margin:"0px 5px" }}>
+                        <div className="card-header"><b>Virtual Showroom</b></div>
+                        <div className="card-body">
+                            <p className="card-text">
+                            a Virtual Showroom Experience in collaboration with trusted car showroom. Users will also be able to book their car directly through Vehicle Vault.
+                            </p>
+                            
+
+                            <button type="button" class="btn btn-success" disabled><Link style={{textDecoration:"none",color:"white"}}>upcoming</Link></button>
+                            
+                        </div>
+                        
+                </div>
+
+
+
+
                 
 
     
