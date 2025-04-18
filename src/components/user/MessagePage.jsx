@@ -179,7 +179,7 @@ export const MessagePage = () => {
   onClick={sendMessage}
   style={{ borderRadius: "20px" }}
 >
-  Send
+<i class="fa-solid fa-paper-plane"></i>
 </button>
 
             </div>
