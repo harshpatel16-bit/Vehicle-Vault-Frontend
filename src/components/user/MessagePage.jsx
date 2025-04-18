@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client"; // 👈 Import Socket.IO client
 import defaultAvatar from "../image/usericon.jpg";
-import chatImage from "../image/chatdefault.png"
+import chatImage from "../image/chatdefault.png";
+
+const socket = io("http://localhost:3011"); // 👈 Connect to backend Socket.IO
 
 export const MessagePage = () => {
   const { receiverId } = useParams();
@@ -14,11 +17,18 @@ export const MessagePage = () => {
   const [receiverDetails, setReceiverDetails] = useState(null);
   const [chatUsers, setChatUsers] = useState([]);
 
-  // ✅ Fetch chat users for sidebar
+  const bottomRef = useRef(null);
+
+  // ✅ Scroll to bottom on new message
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // ✅ Fetch chat users
   useEffect(() => {
     const fetchChatUsers = async () => {
       try {
-        const res = await axios.get("/message/chats/"+currentUserId);
+        const res = await axios.get("/message/chats/" + currentUserId);
         setChatUsers(res.data.data);
       } catch (err) {
         console.error("Error fetching chat users:", err);
@@ -27,11 +37,11 @@ export const MessagePage = () => {
     if (currentUserId) fetchChatUsers();
   }, [currentUserId]);
 
-  // ✅ Fetch receiver's details
+  // ✅ Fetch receiver details
   useEffect(() => {
     const fetchReceiver = async () => {
       try {
-        const res = await axios.get("/user/"+receiverId);
+        const res = await axios.get("/user/" + receiverId);
         setReceiverDetails(res.data.data);
       } catch (err) {
         console.error("Error fetching receiver details:", err);
@@ -40,14 +50,14 @@ export const MessagePage = () => {
     if (receiverId) fetchReceiver();
   }, [receiverId]);
 
-  // ✅ Fetch messages between current user and receiver
+  // ✅ Fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await axios.get("/message/message/"+currentUserId+"/"+receiverId);
+        const res = await axios.get("/message/message/" + currentUserId + "/" + receiverId);
         setMessages(res.data);
 
-        // ✅ Mark messages as read
+        // ✅ Mark as read
         await axios.post("/message/read", {
           senderId: receiverId,
           receiverId: currentUserId,
@@ -58,7 +68,20 @@ export const MessagePage = () => {
     };
     if (currentUserId && receiverId) fetchMessages();
   }, [currentUserId, receiverId]);
-  console.log("Sending message from:", currentUserId, "to:", receiverId);
+
+  // ✅ Setup socket listeners
+  useEffect(() => {
+    socket.on("receive_message", (message) => {
+      if (message.sender === receiverId && message.receiver === currentUserId) {
+        setMessages((prev) => [...prev, message]);
+        scrollToBottom();
+      }
+    });
+
+    return () => {
+      socket.off("receive_message");
+    };
+  }, [receiverId, currentUserId]);
 
   // ✅ Send message
   const sendMessage = async () => {
@@ -69,8 +92,14 @@ export const MessagePage = () => {
         receiverId,
         content: newMessage,
       });
-      setMessages((prev) => [...prev, res.data]);
+
+      const sentMessage = res.data;
+      setMessages((prev) => [...prev, sentMessage]);
       setNewMessage("");
+      scrollToBottom();
+
+      // ✅ Emit socket event
+      socket.emit("send_message", sentMessage);
     } catch (err) {
       console.error("Error sending message:", err);
     }
@@ -103,8 +132,7 @@ export const MessagePage = () => {
         </div>
 
         {/* Chat Window */}
-        <div className="col-md-9 d-flex flex-column justify-content-between">
-          {/* Header */}
+        <div className="col-md-9 d-flex flex-column" style={{ height: "100%" }}>
           <div className="border-bottom p-3 bg-light d-flex align-items-center">
             {receiverDetails ? (
               <>
@@ -122,13 +150,15 @@ export const MessagePage = () => {
           </div>
 
           {/* Messages */}
-          <div className="flex-grow-1 overflow-auto p-3">
+          <div className="flex-grow-1 overflow-auto p-3" style={{ height: "0px" }}>
             {messages.length > 0 ? (
               messages.map((msg, i) => (
                 <div
                   key={i}
                   className={`d-flex mb-2 ${
-                    msg.sender === currentUserId ? "justify-content-end" : "justify-content-start"
+                    msg.sender === currentUserId
+                      ? "justify-content-end"
+                      : "justify-content-start"
                   }`}
                 >
                   <div
@@ -145,17 +175,18 @@ export const MessagePage = () => {
               ))
             ) : (
               <div className="text-center d-flex flex-column align-items-center justify-content-center h-100">
-              <img 
-                src={chatImage} 
-                alt="No messages yet"
-                style={{ width: "400px", maxHeight: "500px", objectFit: "contain" }}
-              />
-            </div>
+                <img
+                  src={chatImage}
+                  alt="No messages yet"
+                  style={{ width: "400px", maxHeight: "500px", objectFit: "contain" }}
+                />
+              </div>
             )}
+            <div ref={bottomRef}></div>
           </div>
 
           {/* Input */}
-          <div className="p-2 border-top bg-light">
+          <div className="p-2 border-top bg-light" style={{ position: "sticky", bottom: "0", zIndex: 1 }}>
             <div
               className="d-flex align-items-center px-2 py-1"
               style={{
@@ -163,6 +194,8 @@ export const MessagePage = () => {
                 borderRadius: "30px",
                 backgroundColor: "#f8f9fa",
                 height: "40px",
+                position:"sticky"
+
               }}
             >
               <input
@@ -175,13 +208,12 @@ export const MessagePage = () => {
                 placeholder="Type your message..."
               />
               <button
-  className="btn btn-sm btn-primary ms-2 px-3"
-  onClick={sendMessage}
-  style={{ borderRadius: "20px" }}
->
-<i class="fa-solid fa-paper-plane"></i>
-</button>
-
+                className="btn btn-sm btn-primary ms-2 px-3"
+                onClick={sendMessage}
+                style={{ borderRadius: "20px" }}
+              >
+                <i className="fa-solid fa-paper-plane"></i>
+              </button>
             </div>
           </div>
         </div>
