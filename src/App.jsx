@@ -33,6 +33,7 @@ import AddAreaPage from "./components/admin/AddAreaPage";
 import AdminUserManagement from "./components/admin/AdminUserManagement";
 import AdminQueries from "./components/admin/AdminQuery";
 import MessagePage from "./components/user/MessagePage";
+import MyWishlist from "./components/user/MyWishlist";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -62,6 +63,7 @@ function App() {
             <Route path="comparecars" element={<CompareCars/>}></Route>
             <Route path="message" element={<MessagePage/>}></Route>
             <Route path="message/:receiverId" element={<MessagePage/>}></Route>
+            <Route path="mywishlist" element={<MyWishlist/>}></Route>
 
 
           </Route>

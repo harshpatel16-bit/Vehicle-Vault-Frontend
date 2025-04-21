@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import swal from "sweetalert2";
+
 
 const CarProfile = () => {
   const { id } = useParams();
@@ -11,6 +13,35 @@ const CarProfile = () => {
   const navigate = useNavigate();
 
   const storedUserId = localStorage.getItem("id");
+
+
+      // Handle adding car to wishlist
+  const handleAddToWishlist = async () => {
+    try {
+      const response = await axios.put(
+        `/wishlist/${storedUserId}`,
+        { carId: id }
+      );
+       swal.fire({
+              title: "Added",
+              icon: "success",
+              text: `${response.data.message}`,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+      navigate("/usersidebar/mywishlist")
+      // Success message from API
+    } catch (error) {
+      console.error("Error adding car to wishlist:", error);
+      alert("There was an error adding the car to your wishlist.");
+    }
+  };
+
+
+
+
+
+
     //handle compare//
   const handleCompare = () => {
     const compareList = JSON.parse(localStorage.getItem("compareCars")) || [];
@@ -19,7 +50,14 @@ const CarProfile = () => {
     if (!compareList.includes(id) && compareList.length < 2) {
       compareList.push(id);
       localStorage.setItem("compareCars", JSON.stringify(compareList));
-      alert("Car added for comparison!");
+      swal.fire({
+        title: "Added",
+        icon: "success",
+        text: "Car added for comparison!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
       if (compareList.length === 2) {
         navigate("/usersidebar/comparecars"); // ✅ Navigate when exactly 2 cars
       }
@@ -138,7 +176,7 @@ const CarProfile = () => {
                       
                       <Link to={"/usersidebar/message/"+car.userId} style={{color:"white", textDecoration:"none"}}>Let's Deal</Link>
                     </button>
-                    <button className="btn btn-secondary ms-2">
+                    <button className="btn btn-secondary ms-2" onClick={handleAddToWishlist}>
                       Add to Wishlist
                     </button> &nbsp;
                     <button className="btn btn-success" onClick={handleCompare}>

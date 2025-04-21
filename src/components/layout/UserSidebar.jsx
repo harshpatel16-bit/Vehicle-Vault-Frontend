@@ -92,6 +92,12 @@ export const UserSidebar = () => {
                       </Link>
               </li>
               <li className="nav-item">
+              <Link to={"/usersidebar/mywishlist"} className="nav-link">
+                      <i className="nav-icon bi bi-circle" />
+                      <p>My Wishlist</p>
+                      </Link>
+              </li>
+              <li className="nav-item">
                 {/* <a href="#" className="nav-link">
                   <i className="nav-icon bi bi-box-seam-fill" />
                   <p>
