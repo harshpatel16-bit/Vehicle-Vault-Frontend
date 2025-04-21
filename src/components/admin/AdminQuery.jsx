@@ -13,6 +13,7 @@ import {
   CircularProgress,
   TableContainer,
   Alert,
+  Button,
 } from '@mui/material';
 
 export const AdminQueries = () => {
@@ -29,6 +30,16 @@ export const AdminQueries = () => {
       console.error(err);
       setError('Failed to load queries.');
       setLoading(false);
+    }
+  };
+
+  const handleResolve = async (id) => {
+    try {
+      await axios.delete("/query/deletequerybyid/"+id);
+      setQueries((prev) => prev.filter((query) => query._id !== id));
+    } catch (err) {
+      console.error('Error deleting query:', err);
+      setError('Failed to resolve query.');
     }
   };
 
@@ -59,6 +70,7 @@ export const AdminQueries = () => {
                   <TableCell sx={{ color: 'white' }}>Subject</TableCell>
                   <TableCell sx={{ color: 'white' }}>Message</TableCell>
                   <TableCell sx={{ color: 'white' }}>Submitted At</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -70,6 +82,16 @@ export const AdminQueries = () => {
                     <TableCell>{query.message}</TableCell>
                     <TableCell>
                       {new Date(query.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => handleResolve(query._id)}
+                      >
+                        Resolved
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
