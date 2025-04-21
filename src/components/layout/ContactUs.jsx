@@ -23,10 +23,10 @@ export const ContactUs = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("/query/postquery", formData); // Update port if needed
+      const response = await axios.post("/query/postquery", formData);
       console.log(response.data);
       setStatus('Message sent successfully!');
-      setFormData({ fullName: '', email: '', subject: '', message: '' }); // Reset form
+      setFormData({ fullName: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error(error);
       setStatus('Something went wrong. Please try again.');
@@ -74,14 +74,22 @@ export const ContactUs = () => {
                 </div>
                 <div className="mb-3">
                   <label htmlFor="subject" className="form-label">Subject</label>
-                  <input
-                    type="text"
-                    className="form-control"
+                  <select
                     id="subject"
+                    className="form-select"
                     value={formData.subject}
                     onChange={handleChange}
-                    placeholder="What's this about?"
-                  />
+                    required
+                  >
+                    <option value="">Select a subject</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Technical Issue">Technical Issue</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Sell My Car">Sell My Car</option>
+                    <option value="Buy a Car">Buy a Car</option>
+                    <option value="Report a Bug">Report a Bug</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 <div className="mb-3">
                   <label htmlFor="message" className="form-label">Your Message</label>
