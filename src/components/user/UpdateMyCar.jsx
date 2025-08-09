@@ -5,8 +5,13 @@ import { useForm } from "react-hook-form";
 import swal from "sweetalert2";
 
 export const UpdateMyCar = () => {
+   const navigate = useNavigate();
+   if(!(localStorage.getItem("id"))){
+          navigate('/login');
+      }
+
   const { id } = useParams(); // Get car ID from URL
-  const navigate = useNavigate();
+   
   const { register, handleSubmit, setValue } = useForm();
 
   useEffect(() => {

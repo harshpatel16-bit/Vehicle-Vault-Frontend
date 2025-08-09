@@ -6,6 +6,11 @@ import swal from 'sweetalert2';
 
 
 export const SellCarForm = () => {
+    const navigate = useNavigate();
+       if(!(localStorage.getItem("id"))){
+              navigate('/login');
+          }
+
 
      const [states, setstates] = useState([]);
      const [cities, setcities] = useState([]);
@@ -61,7 +66,6 @@ export const SellCarForm = () => {
 
 
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const navigate = useNavigate()
 
     const submitHandler = async (data) => {
 

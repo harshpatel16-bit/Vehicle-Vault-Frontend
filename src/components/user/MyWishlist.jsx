@@ -1,9 +1,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import swal from "sweetalert2";
 
 const MyWishlist = () => {
+  const navigate = useNavigate();
+   if(!(localStorage.getItem("id"))){
+          navigate('/login');
+      }
   const [wishlistCars, setWishlistCars] = useState([]);
   const userId = localStorage.getItem("id");
 

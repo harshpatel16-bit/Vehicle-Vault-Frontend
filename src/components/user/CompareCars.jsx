@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const CompareCars = () => {
+  const navigate = useNavigate();
+   if(!(localStorage.getItem("id"))){
+          navigate('/login');
+      }
   const [cars, setCars] = useState([]);
 
   useEffect(() => {

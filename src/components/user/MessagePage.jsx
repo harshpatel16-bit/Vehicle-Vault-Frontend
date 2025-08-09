@@ -10,8 +10,11 @@ const socket = io("https://vehicle-vault-backend-seven.vercel.app", {
 });
 
 export const MessagePage = () => {
-  const { receiverId } = useParams();
   const navigate = useNavigate();
+     if(!(localStorage.getItem("id"))){
+            navigate('/login');
+        }
+  const { receiverId } = useParams();
   const currentUserId = localStorage.getItem("id");
 
   const [messages, setMessages] = useState([]);
