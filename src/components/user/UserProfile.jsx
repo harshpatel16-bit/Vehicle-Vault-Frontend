@@ -8,7 +8,10 @@ import {
 
 export const UserProfile = () => {
 
- 
+   const navigate=useNavigate();
+   if(!(localStorage.getItem("id"))){
+        navigate('/login');
+    }
 
   const [cars, setcars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
