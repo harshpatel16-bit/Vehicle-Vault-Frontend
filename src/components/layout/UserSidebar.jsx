@@ -1,10 +1,15 @@
 import React from 'react'
 import { UserNavbar } from './UserNavbar'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { UserProfile } from '../user/UserProfile'
 import logo from "../image/V.png"
 
 export const UserSidebar = () => {
+  const navigate=useNavigate();
+   if(!(localStorage.getItem("id"))){
+        navigate('/login');
+    }
+  
   return (
     <>
         

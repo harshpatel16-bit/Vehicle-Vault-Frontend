@@ -58,8 +58,6 @@ function App() {
             <Route path="message" element={<MessagePage/>}></Route>
             <Route path="message/:receiverId" element={<MessagePage/>}></Route>
             <Route path="mywishlist" element={<MyWishlist/>}></Route>
-
-
           </Route>
 
           <Route path="footer" element={<Footer />}></Route>
