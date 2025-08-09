@@ -87,7 +87,7 @@ export const MessagePage = () => {
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
     try {
-      const res = await axios.post("http://localhost:3011/message/send", {
+      const res = await axios.post("https://vehicle-vault-backend-seven.vercel.app/message/send", {
         senderId: currentUserId,
         receiverId,
         content: newMessage,

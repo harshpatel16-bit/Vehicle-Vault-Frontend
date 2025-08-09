@@ -48,8 +48,6 @@ function App() {
           <Route path="/forgotpassword" element={<ForgotPassword/>}></Route>
           <Route path="/resetpassword/:token" element={<ResetPassword/>}></Route>
           <Route path="/contactus" element={<ContactUs/>}></Route>
-          
-
           <Route path="/usersidebar" element={<UserSidebar />}>
             <Route path="profile" element={<UserProfile />}></Route>
             <Route path="sellcar" element={<SellCarForm />}></Route>
