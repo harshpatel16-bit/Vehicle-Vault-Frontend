@@ -33,7 +33,7 @@ import MessagePage from "./components/user/MessagePage";
 import MyWishlist from "./components/user/MyWishlist";
 
 function App() {
-  axios.defaults.baseURL = "http://vehicle-vault-backend-seven.vercel.app";
+  axios.defaults.baseURL = "https://vehicle-vault-backend-seven.vercel.app";
 
   return (
     <body className="layout-fixed sidebar-expand-lg bg-body-tertiary app-loaded sidebar-open">
