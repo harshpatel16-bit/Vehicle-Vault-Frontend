@@ -1,6 +1,3 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 //import './App.css'
 import { Route, Routes } from "react-router-dom";
 import "./assets/adminlte.css";
@@ -36,12 +33,11 @@ import MessagePage from "./components/user/MessagePage";
 import MyWishlist from "./components/user/MyWishlist";
 
 function App() {
-  const [count, setCount] = useState(0);
-  axios.defaults.baseURL = "http://localhost:3011";
+  axios.defaults.baseURL = "http://49.34.214.25:3011";
 
   return (
-    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary app-loaded sidebar-open">
-      <div class="app-wrapper">
+    <body className="layout-fixed sidebar-expand-lg bg-body-tertiary app-loaded sidebar-open">
+      <div className="app-wrapper">
         <Routes>
           <Route path="/login" element={<Login />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
