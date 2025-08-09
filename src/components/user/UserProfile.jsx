@@ -7,11 +7,10 @@ import {
 } from '@mui/material';
 
 export const UserProfile = () => {
-
-   const navigate=useNavigate();
-   if(!(localStorage.getItem("id"))){
-        navigate('/login');
-    }
+  const navigate = useNavigate();
+  if (!(localStorage.getItem("id"))) {
+    navigate('/login');
+  }
 
   const [cars, setcars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,21 +34,15 @@ export const UserProfile = () => {
 
   const handleSearch = () => {
     let filtered = [...cars];
-
-    // Text search
     if (searchTerm) {
       filtered = filtered.filter((car) =>
         car.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
         car.companyName.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Brand filter
     if (selectedBrands.length > 0) {
       filtered = filtered.filter(car => selectedBrands.includes(car.companyName));
     }
-
-    // Price filter
     if (minPrice || maxPrice) {
       filtered = filtered.filter(car => {
         const price = parseInt(car.price);
@@ -59,9 +52,8 @@ export const UserProfile = () => {
         );
       });
     }
-
     setFilteredCars(filtered);
-    setDialogOpen(false); // Close dialog after filtering
+    setDialogOpen(false);
     setSelectedBrands([]);
     setMinPrice('');
     setMaxPrice('');
@@ -69,10 +61,41 @@ export const UserProfile = () => {
 
   return (
     <>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .top-cards {
+              flex-direction: column;
+              align-items: center;
+            }
+            .top-cards .card {
+              width: 90% !important;
+            }
+            .search-filter-container {
+              flex-direction: column;
+              align-items: stretch;
+            }
+            .search-filter-container button {
+              width: 100%;
+            }
+            .car-card {
+              width: 100% !important;
+            }
+          }
+          @media (max-width: 480px) {
+            h2 {
+              font-size: 1.2rem;
+            }
+            .card-text {
+              font-size: 0.9rem;
+            }
+          }
+        `}
+      </style>
+
       {/* Top Cards */}
-      <div style={{ padding: "10px", fontFamily: "Montserrat", display: "flex", justifyContent: "center", flexWrap: 'wrap' }}>
-        {/* Sell Car */}
-        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", margin: "5px" }}>
+      <div className="top-cards" style={{ padding: "10px", fontFamily: "Montserrat", display: "flex", justifyContent: "center", flexWrap: 'wrap', gap: '10px' }}>
+        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", flex: '1 1 250px' }}>
           <div className="card-header"><b>Sell Your Car</b></div>
           <div className="card-body">
             <p className="card-text">List your car with details like brand, model, year, price, and mileage. Upload high-quality images, connect with buyers, and sell hassle-free!</p>
@@ -82,33 +105,30 @@ export const UserProfile = () => {
           </div>
         </div>
 
-        {/* My Cars */}
-        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", margin: "5px" }}>
+        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", flex: '1 1 250px' }}>
           <div className="card-header"><b>My Cars</b></div>
           <div className="card-body">
-            <p className="card-text">You can view all the cars you have uploaded for sale.Manage your listings efficiently and ensure your car gets the best visibility among buyers. </p>
+            <p className="card-text">You can view all the cars you have uploaded for sale. Manage your listings efficiently and ensure your car gets the best visibility among buyers.</p>
             <button type="button" className="btn btn-success">
               <Link style={{ textDecoration: "none", color: "white" }} to="/usersidebar/mycars">My Cars</Link>
             </button>
           </div>
         </div>
 
-        {/* Compare Cars */}
-        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", margin: "5px" }}>
+        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", flex: '1 1 250px' }}>
           <div className="card-header"><b>Compare Cars</b></div>
           <div className="card-body">
-            <p className="card-text"> It allows you to effortlessly compare multiple vehicles based on various specifications and features. side-by-side comparison of essential details.</p>
+            <p className="card-text">It allows you to effortlessly compare multiple vehicles based on various specifications and features. Side-by-side comparison of essential details.</p>
             <button type="button" className="btn btn-success">
               <Link style={{ textDecoration: "none", color: "white" }} to="/usersidebar/comparecars">Compare</Link>
             </button>
           </div>
         </div>
 
-        {/* Virtual Showroom */}
-        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", margin: "5px" }}>
+        <div className="card text-bg-light mb-3" style={{ maxWidth: "18rem", flex: '1 1 250px' }}>
           <div className="card-header"><b>Virtual Showroom</b></div>
           <div className="card-body">
-            <p className="card-text">a Virtual Showroom Experience in collaboration with trusted car showroom. Users will also be able to book their car directly through Vehicle Vault.</p>
+            <p className="card-text">A Virtual Showroom Experience in collaboration with trusted car showroom. Users will also be able to book their car directly through Vehicle Vault.</p>
             <button type="button" className="btn btn-success" disabled>
               Upcoming
             </button>
@@ -120,29 +140,28 @@ export const UserProfile = () => {
       <h2 style={{ textAlign: "center" }}>Explore Your Car – Find, Compare & Choose the Best!</h2>
       <hr />
 
-      {/* Search & Filter Buttons */}
-      <div style={{ padding: '10px 30px', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+      {/* Search & Filter */}
+      <div className="search-filter-container" style={{ padding: '10px 30px', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
         <TextField
           label="Search Car"
           variant="outlined"
-          fullWidth
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ maxWidth: '800px' }}
+          style={{ flex: '1 1 300px' }}
         />
         <Button variant="contained" color="primary" onClick={handleSearch}>
           Search
         </Button>
-        <Button variant="outlined" color="secondary" onClick={() => {setDialogOpen(true); setSearchTerm('');}} >
+        <Button variant="outlined" color="secondary" onClick={() => { setDialogOpen(true); setSearchTerm(''); }}>
           Filter
         </Button>
       </div>
 
-      {/* Dialog Box for Filters */}
+      {/* Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>Filter Cars</DialogTitle>
-        <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '10px'}}>
-          <FormControl style={{ width: 300 }}>
+        <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '10px' }}>
+          <FormControl style={{ width: '100%' }}>
             <InputLabel>Car Brands</InputLabel>
             <Select
               multiple
@@ -160,25 +179,11 @@ export const UserProfile = () => {
             </Select>
           </FormControl>
 
-          <TextField
-            label="Min Price"
-            variant="outlined"
-            type="number"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-          <TextField
-            label="Max Price"
-            variant="outlined"
-            type="number"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
+          <TextField label="Min Price" type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+          <TextField label="Max Price" type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {setDialogOpen(false);setSelectedBrands([]);
-    setMinPrice('');
-    setMaxPrice('');}} color="error">Cancel</Button>
+          <Button onClick={() => { setDialogOpen(false); setSelectedBrands([]); setMinPrice(''); setMaxPrice(''); }} color="error">Cancel</Button>
           <Button onClick={handleSearch} color="primary" variant="contained">Apply Filters</Button>
         </DialogActions>
       </Dialog>
@@ -187,7 +192,7 @@ export const UserProfile = () => {
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px', padding: '0px 30px' }}>
         {filteredCars.length > 0 ? (
           filteredCars.map((car) => (
-            <div key={car._id} className="card" style={{ width: '18rem', minHeight: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div key={car._id} className="card car-card" style={{ width: '18rem', minHeight: '400px', flex: '1 1 250px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <img src={car.carURL} className="card-img-top" alt={car.model} style={{ height: '200px', objectFit: 'cover' }} />
               <div className="card-body" style={{ flex: '1' }}>
                 <h5 className="card-title"><b>{car.companyName} {car.model}</b></h5><br />
