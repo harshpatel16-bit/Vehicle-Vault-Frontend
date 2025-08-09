@@ -1,0 +1,11 @@
+.carousel-img {
+  border-radius: 5px;
+  max-height: 500px;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .carousel-img {
+    max-height: 300px;
+  }
+}
