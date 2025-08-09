@@ -33,7 +33,7 @@ import MessagePage from "./components/user/MessagePage";
 import MyWishlist from "./components/user/MyWishlist";
 
 function App() {
-  axios.defaults.baseURL = "http://49.34.214.25:3011";
+  axios.defaults.baseURL = "http://49.34.208.221:3011";
 
   return (
     <body className="layout-fixed sidebar-expand-lg bg-body-tertiary app-loaded sidebar-open">
