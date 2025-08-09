@@ -5,7 +5,9 @@ import { io } from "socket.io-client"; // 👈 Import Socket.IO client
 import defaultAvatar from "../image/usericon.jpg";
 import chatImage from "../image/chatdefault.png";
 
-const socket = io("http://localhost:3011"); // 👈 Connect to backend Socket.IO
+const socket = io("https://vehicle-vault-backend-seven.vercel.app", {
+  transports: ["websocket"]
+});
 
 export const MessagePage = () => {
   const { receiverId } = useParams();
