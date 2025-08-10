@@ -1,184 +1,163 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import swal from "sweetalert2";
-import { Navbar } from "./Navbar";
 
 export const SellCarForm = () => {
   const navigate = useNavigate();
+  if (!localStorage.getItem("id")) {
+    navigate("/login");
+  }
 
-  const [formData, setFormData] = useState({
-    companyName: "",
-    model: "",
-    year: "",
-    price: "",
-    fuelType: "",
-    transmissionType: "",
-    mileage: "",
-    description: "",
-    stateId: "",
-    cityId: "",
-    areaId: "",
-  });
-
-  const [carImage, setCarImage] = useState(null);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [areas, setAreas] = useState([]);
-  const [status, setStatus] = useState("");
+  const [states, setstates] = useState([]);
+  const [cities, setcities] = useState([]);
+  const [areas, setareas] = useState([]);
 
   useEffect(() => {
-    if (!localStorage.getItem("id")) {
-      navigate("/login");
-    }
-    fetchStates();
-  }, [navigate]);
+    getAllStates();
+  }, []);
 
-  const fetchStates = async () => {
-    try {
-      const res = await axios.get("/state/getallstates");
-      setStates(res.data.data);
-    } catch (err) {
-      console.error("Error fetching states", err);
-    }
+  const getAllStates = async () => {
+    const res = await axios.get("/state/getallstates");
+    console.log(res.data);
+    setstates(res.data.data);
   };
 
-  const fetchCities = async (stateId) => {
-    try {
-      const res = await axios.get("/city/getcitybystate/" + stateId);
-      setCities(res.data.data);
-      setAreas([]);
-      setFormData((prev) => ({ ...prev, cityId: "", areaId: "" }));
-    } catch (err) {
-      console.error("Error fetching cities", err);
-    }
+  const getCityByStateId = async (id) => {
+    //api...
+    const res = await axios.get("city/getcitybystate/" + id);
+    console.log("city response...", res.data);
+    setcities(res.data.data);
   };
 
-  const fetchAreas = async (cityId) => {
-    try {
-      const res = await axios.get("/area/getareabycity/" + cityId);
-      setAreas(res.data.data);
-      setFormData((prev) => ({ ...prev, areaId: "" }));
-    } catch (err) {
-      console.error("Error fetching areas", err);
-    }
+  const getAreaByCityId = async (id) => {
+    //alert(id)
+    const res = await axios.get("/area/getareabycity/" + id);
+    setareas(res.data.data);
   };
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-
-    if (id === "stateId") fetchCities(value);
-    if (id === "cityId") fetchAreas(value);
-  };
-
-  const handleFileChange = (e) => {
-    setCarImage(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!carImage) {
-      setStatus("Please upload a car image.");
-      return;
-    }
-
+  const submitHandler = async (data) => {
     const userId = localStorage.getItem("id");
+    data.userId = userId;
+    console.log(data.carURL[0]);
+    const formData = new FormData();
 
-    try {
-      const dataToSend = new FormData();
-      Object.entries(formData).forEach(([key, val]) => {
-        dataToSend.append(key, val);
-      });
-      dataToSend.append("userId", userId);
-      dataToSend.append("carURL", carImage);
+    formData.append("companyName", data.companyName);
+    formData.append("model", data.model);
+    formData.append("year", data.year);
+    formData.append("price", data.price);
+    formData.append("fuelType", data.fuelType);
+    formData.append("transmissionType", data.transmissionType);
+    formData.append("mileage", data.mileage);
+    formData.append("description", data.description);
+    formData.append("stateId", data.stateId);
+    formData.append("cityId", data.cityId);
+    formData.append("areaId", data.areaId);
+    formData.append("userId", data.userId);
+    formData.append("carURL", data.carURL[0]);
 
-      const res = await axios.post("/car/addcarwithfile", dataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const res = await axios.post("/car/addcarwithfile", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    console.log(res);
+    console.log(res.data);
 
-      swal.fire({
-        title: "Success",
-        icon: "success",
-        text: "Car added Successfully!!",
-        showConfirmButton: false,
-        timer: 1500,
-      });
+    swal.fire({
+      title: "success",
+      icon: "success",
+      text: "Car added Successfully!!",
+      showConfirmButton: false,
+      timer: 1500,
+    });
 
-      setStatus("");
-      navigate("/usersidebar/mycars");
-    } catch (error) {
-      console.error(error);
-      setStatus("Something went wrong. Please try again.");
-    }
+    navigate("/usersidebar/mycars");
+
+    // console.log(data);
   };
 
   return (
-    <>
-      <Navbar />
+    <div
+      style={{
+        width: "1200px",
+        boxSizing: "border-box",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          marginTop: "40px",
-        }}
+        className="row justify-content-center"
+        style={{ width: "90%", marginTop: "30px" }}
       >
-        <div className="container mt-4">
-          <h2 className="text-center mb-3">Sell Your Car</h2>
-          <p className="text-center text-muted mb-4">
-            Fill out the form below to list your car for sale.
-          </p>
-        </div>
-
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-md-10">
-              <form onSubmit={handleSubmit} encType="multipart/form-data">
-                {[
-                  {
-                    label: "Company Name",
-                    id: "companyName",
-                    type: "text",
-                    placeholder: "Enter company name",
-                  },
-                  { label: "Model", id: "model", type: "text", placeholder: "Enter model" },
-                  { label: "Year", id: "year", type: "number", placeholder: "Enter year" },
-                  { label: "Price", id: "price", type: "number", placeholder: "Enter price" },
-                  { label: "Mileage (km/l)", id: "mileage", type: "number", placeholder: "Enter mileage" },
-                ].map(({ label, id, type, placeholder }) => (
-                  <div className="mb-3" key={id}>
-                    <label htmlFor={id} className="form-label">
-                      {label}
-                    </label>
-                    <input
-                      type={type}
-                      className="form-control"
-                      id={id}
-                      value={formData[id]}
-                      onChange={handleChange}
-                      placeholder={placeholder}
-                      required
-                    />
-                  </div>
-                ))}
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-header bg-primary text-white text-center">
+              <h4>Sell Your Car</h4>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleSubmit(submitHandler)}>
+                <div className="mb-3">
+                  <label className="form-label">Company Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter company name"
+                    {...register("companyName", {
+                      required: "Company name is required",
+                    })}
+                  />
+                  <span style={{ color: "red" }}>
+                    {errors.companyName?.message}
+                  </span>
+                </div>
 
                 <div className="mb-3">
-                  <label htmlFor="fuelType" className="form-label">
-                    Fuel Type
-                  </label>
+                  <label className="form-label">Model</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter model"
+                    {...register("model", { required: "Model is required" })}
+                  />
+                  <span style={{ color: "red" }}>{errors.model?.message}</span>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Year</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Enter year"
+                    {...register("year", { required: "Year is required" })}
+                  />
+                  <span style={{ color: "red" }}>{errors.year?.message}</span>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Price</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Enter price"
+                    {...register("price", { required: "Price is required" })}
+                  />
+                  <span style={{ color: "red" }}>{errors.price?.message}</span>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Fuel Type</label>
                   <select
-                    id="fuelType"
-                    className="form-select"
-                    value={formData.fuelType}
-                    onChange={handleChange}
-                    required
+                    className="form-control"
+                    {...register("fuelType", {
+                      required: "Fuel type is required",
+                    })}
                   >
                     <option value="">Select Fuel Type</option>
                     <option value="Petrol">Petrol</option>
@@ -186,134 +165,125 @@ export const SellCarForm = () => {
                     <option value="Electric">Electric</option>
                     <option value="Hybrid">Hybrid</option>
                   </select>
+                  <span style={{ color: "red" }}>
+                    {errors.fuelType?.message}
+                  </span>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="transmissionType" className="form-label">
-                    Transmission Type
-                  </label>
+                  <label className="form-label">Transmission Type</label>
                   <select
-                    id="transmissionType"
-                    className="form-select"
-                    value={formData.transmissionType}
-                    onChange={handleChange}
-                    required
+                    className="form-control"
+                    {...register("transmissionType", {
+                      required: "Transmission type is required",
+                    })}
                   >
                     <option value="">Select Transmission Type</option>
                     <option value="Manual">Manual</option>
                     <option value="Automatic">Automatic</option>
                     <option value="Semi-Automatic">Semi-Automatic</option>
                   </select>
+                  <span style={{ color: "red" }}>
+                    {errors.transmissionType?.message}
+                  </span>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
+                  <label className="form-label">Mileage (km/l)</label>
+                  <input
+                    type="number"
                     className="form-control"
-                    rows={3}
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Enter car description (optional)"
+                    placeholder="Enter mileage"
+                    {...register("mileage", {
+                      required: "Mileage is required",
+                    })}
                   />
+                  <span style={{ color: "red" }}>
+                    {errors.mileage?.message}
+                  </span>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="stateId" className="form-label">
-                    Select State
-                  </label>
-                  <select
-                    id="stateId"
-                    className="form-select"
-                    value={formData.stateId}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select State</option>
-                    {states.map((state) => (
-                      <option key={state._id} value={state._id}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="form-label">Description</label>
+                  <textarea
+                    className="form-control"
+                    placeholder="Enter car description"
+                    {...register("description")}
+                  ></textarea>
+                  <span style={{ color: "red" }}>
+                    {errors.description?.message}
+                  </span>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="cityId" className="form-label">
-                    Select City
-                  </label>
+                  <label className="form-label">Select State</label>
                   <select
-                    id="cityId"
-                    className="form-select"
-                    value={formData.cityId}
-                    onChange={handleChange}
-                    required
-                    disabled={!formData.stateId}
+                    {...register("stateId")}
+                    onChange={(event) => {
+                      getCityByStateId(event.target.value);
+                    }}
+                    className="form-control"
                   >
-                    <option value="">Select City</option>
-                    {cities.map((city) => (
-                      <option key={city._id} value={city._id}>
-                        {city.name}
-                      </option>
-                    ))}
+                    <option>Select State</option>
+                    {states?.map((state) => {
+                      return <option value={state._id}>{state.name}</option>;
+                    })}
                   </select>
+                  <span style={{ color: "red" }}>
+                    {errors.stateId?.message}
+                  </span>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="areaId" className="form-label">
-                    Select Area
-                  </label>
+                  <label className="form-label">Select City</label>
                   <select
-                    id="areaId"
-                    className="form-select"
-                    value={formData.areaId}
-                    onChange={handleChange}
-                    required
-                    disabled={!formData.cityId}
+                    {...register("cityId")}
+                    onChange={(event) => {
+                      getAreaByCityId(event.target.value);
+                    }}
+                    className="form-control"
                   >
-                    <option value="">Select Area</option>
-                    {areas.map((area) => (
-                      <option key={area._id} value={area._id}>
-                        {area.name}
-                      </option>
-                    ))}
+                    <option>Select City</option>
+                    {cities?.map((city) => {
+                      return <option value={city._id}>{city.name}</option>;
+                    })}
                   </select>
+                  <span style={{ color: "red" }}>{errors.cityId?.message}</span>
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="carImage" className="form-label">
-                    Car Image
-                  </label>
+                <div className="mb-3">
+                  <label className="form-label">Select Area</label>
+                  <select {...register("areaId")} className="form-control">
+                    <option>Select Area</option>
+                    {areas?.map((area) => {
+                      return <option value={area._id}>{area.name}</option>;
+                    })}
+                  </select>
+                  <span style={{ color: "red" }}>{errors.areaId?.message}</span>
+                </div>
+
+                {/* Car Image Field */}
+
+                <div className="mb-3">
+                  <label className="form-label">Car Image</label>
                   <input
                     type="file"
                     className="form-control"
-                    id="carImage"
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    required
+                    placeholder="Enter car image"
+                    {...register("carURL", { required: "Image is required" })}
                   />
                 </div>
 
-                <div className="d-grid gap-2 mb-3">
-                  <button type="submit" className="btn btn-primary btn-lg">
-                    Sell Car
-                  </button>
-                </div>
+                {/* End Of Car Image Field */}
 
-                {status && (
-                  <p className="text-center text-danger fw-semibold">{status}</p>
-                )}
+                <button type="submit" className="btn btn-primary w-100">
+                  Sell Car
+                </button>
               </form>
             </div>
           </div>
         </div>
-
-        <div className="container mt-5 text-center text-muted">
-          <p>© 2025 Vehicle Vault. All rights reserved.</p>
-        </div>
       </div>
-    </>
+    </div>
   );
 };
