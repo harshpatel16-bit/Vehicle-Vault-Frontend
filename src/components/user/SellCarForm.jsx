@@ -1,190 +1,319 @@
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import swal from "sweetalert2";
+import { Navbar } from "./Navbar";
 
 export const SellCarForm = () => {
   const navigate = useNavigate();
-  if (!localStorage.getItem("id")) {
-    navigate("/login");
-  }
 
-  const [states, setstates] = useState([]);
-  const [cities, setcities] = useState([]);
-  const [areas, setareas] = useState([]);
+  const [formData, setFormData] = useState({
+    companyName: "",
+    model: "",
+    year: "",
+    price: "",
+    fuelType: "",
+    transmissionType: "",
+    mileage: "",
+    description: "",
+    stateId: "",
+    cityId: "",
+    areaId: "",
+  });
+
+  const [carImage, setCarImage] = useState(null);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
-    getAllStates();
-  }, []);
+    if (!localStorage.getItem("id")) {
+      navigate("/login");
+    }
+    fetchStates();
+  }, [navigate]);
 
-  const getAllStates = async () => {
-    const res = await axios.get("/state/getallstates");
-    setstates(res.data.data);
+  const fetchStates = async () => {
+    try {
+      const res = await axios.get("/state/getallstates");
+      setStates(res.data.data);
+    } catch (err) {
+      console.error("Error fetching states", err);
+    }
   };
 
-  const getCityByStateId = async (id) => {
-    const res = await axios.get("city/getcitybystate/" + id);
-    setcities(res.data.data);
+  const fetchCities = async (stateId) => {
+    try {
+      const res = await axios.get("/city/getcitybystate/" + stateId);
+      setCities(res.data.data);
+      setAreas([]);
+      setFormData((prev) => ({ ...prev, cityId: "", areaId: "" }));
+    } catch (err) {
+      console.error("Error fetching cities", err);
+    }
   };
 
-  const getAreaByCityId = async (id) => {
-    const res = await axios.get("/area/getareabycity/" + id);
-    setareas(res.data.data);
+  const fetchAreas = async (cityId) => {
+    try {
+      const res = await axios.get("/area/getareabycity/" + cityId);
+      setAreas(res.data.data);
+      setFormData((prev) => ({ ...prev, areaId: "" }));
+    } catch (err) {
+      console.error("Error fetching areas", err);
+    }
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const handleChange = (e) => {
+    const { id, value } = e.target;
 
-  const submitHandler = async (data) => {
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+
+    if (id === "stateId") fetchCities(value);
+    if (id === "cityId") fetchAreas(value);
+  };
+
+  const handleFileChange = (e) => {
+    setCarImage(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!carImage) {
+      setStatus("Please upload a car image.");
+      return;
+    }
+
     const userId = localStorage.getItem("id");
-    data.userId = userId;
-    const formData = new FormData();
 
-    formData.append("companyName", data.companyName);
-    formData.append("model", data.model);
-    formData.append("year", data.year);
-    formData.append("price", data.price);
-    formData.append("fuelType", data.fuelType);
-    formData.append("transmissionType", data.transmissionType);
-    formData.append("mileage", data.mileage);
-    formData.append("description", data.description);
-    formData.append("stateId", data.stateId);
-    formData.append("cityId", data.cityId);
-    formData.append("areaId", data.areaId);
-    formData.append("userId", data.userId);
-    formData.append("carURL", data.carURL[0]);
+    try {
+      const dataToSend = new FormData();
+      Object.entries(formData).forEach(([key, val]) => {
+        dataToSend.append(key, val);
+      });
+      dataToSend.append("userId", userId);
+      dataToSend.append("carURL", carImage);
 
-    const res = await axios.post("/car/addcarwithfile", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      const res = await axios.post("/car/addcarwithfile", dataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    swal.fire({
-      title: "Success",
-      icon: "success",
-      text: "Car added Successfully!!",
-      showConfirmButton: false,
-      timer: 1500,
-    });
+      swal.fire({
+        title: "Success",
+        icon: "success",
+        text: "Car added Successfully!!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
 
-    navigate("/usersidebar/mycars");
+      setStatus("");
+      navigate("/usersidebar/mycars");
+    } catch (error) {
+      console.error(error);
+      setStatus("Something went wrong. Please try again.");
+    }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "700px",
-        margin: "40px auto",
-        padding: "20px",
-      }}
-    >
-      <div className="card shadow-sm">
-        <div className="card-header bg-primary text-white text-center">
-          <h4 className="mb-0">Sell Your Car</h4>
+    <>
+      <Navbar />
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          marginTop: "40px",
+        }}
+      >
+        <div className="container mt-4">
+          <h2 className="text-center mb-3">Sell Your Car</h2>
+          <p className="text-center text-muted mb-4">
+            Fill out the form below to list your car for sale.
+          </p>
         </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit(submitHandler)} noValidate>
-            {[
-              { label: "Company Name", name: "companyName", type: "text", placeholder: "Enter company name", required: true },
-              { label: "Model", name: "model", type: "text", placeholder: "Enter model", required: true },
-              { label: "Year", name: "year", type: "number", placeholder: "Enter year", required: true },
-              { label: "Price", name: "price", type: "number", placeholder: "Enter price", required: true },
-              { label: "Mileage (km/l)", name: "mileage", type: "number", placeholder: "Enter mileage", required: true },
-            ].map(({ label, name, type, placeholder, required }) => (
-              <div className="mb-3" key={name}>
-                <label className="form-label">{label}</label>
-                <input
-                  type={type}
-                  className={`form-control ${errors[name] ? "is-invalid" : ""}`}
-                  placeholder={placeholder}
-                  {...register(name, { required: required && `${label} is required` })}
-                />
-                <div className="invalid-feedback">{errors[name]?.message}</div>
-              </div>
-            ))}
 
-            <div className="mb-3">
-              <label className="form-label">Fuel Type</label>
-              <select
-                className={`form-select ${errors.fuelType ? "is-invalid" : ""}`}
-                {...register("fuelType", { required: "Fuel type is required" })}
-              >
-                <option value="">Select Fuel Type</option>
-                <option value="Petrol">Petrol</option>
-                <option value="Diesel">Diesel</option>
-                <option value="Electric">Electric</option>
-                <option value="Hybrid">Hybrid</option>
-              </select>
-              <div className="invalid-feedback">{errors.fuelType?.message}</div>
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-10">
+              <form onSubmit={handleSubmit} encType="multipart/form-data">
+                {[
+                  {
+                    label: "Company Name",
+                    id: "companyName",
+                    type: "text",
+                    placeholder: "Enter company name",
+                  },
+                  { label: "Model", id: "model", type: "text", placeholder: "Enter model" },
+                  { label: "Year", id: "year", type: "number", placeholder: "Enter year" },
+                  { label: "Price", id: "price", type: "number", placeholder: "Enter price" },
+                  { label: "Mileage (km/l)", id: "mileage", type: "number", placeholder: "Enter mileage" },
+                ].map(({ label, id, type, placeholder }) => (
+                  <div className="mb-3" key={id}>
+                    <label htmlFor={id} className="form-label">
+                      {label}
+                    </label>
+                    <input
+                      type={type}
+                      className="form-control"
+                      id={id}
+                      value={formData[id]}
+                      onChange={handleChange}
+                      placeholder={placeholder}
+                      required
+                    />
+                  </div>
+                ))}
+
+                <div className="mb-3">
+                  <label htmlFor="fuelType" className="form-label">
+                    Fuel Type
+                  </label>
+                  <select
+                    id="fuelType"
+                    className="form-select"
+                    value={formData.fuelType}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Fuel Type</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Hybrid">Hybrid</option>
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="transmissionType" className="form-label">
+                    Transmission Type
+                  </label>
+                  <select
+                    id="transmissionType"
+                    className="form-select"
+                    value={formData.transmissionType}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Transmission Type</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Semi-Automatic">Semi-Automatic</option>
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    className="form-control"
+                    rows={3}
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Enter car description (optional)"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="stateId" className="form-label">
+                    Select State
+                  </label>
+                  <select
+                    id="stateId"
+                    className="form-select"
+                    value={formData.stateId}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select State</option>
+                    {states.map((state) => (
+                      <option key={state._id} value={state._id}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="cityId" className="form-label">
+                    Select City
+                  </label>
+                  <select
+                    id="cityId"
+                    className="form-select"
+                    value={formData.cityId}
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.stateId}
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((city) => (
+                      <option key={city._id} value={city._id}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="areaId" className="form-label">
+                    Select Area
+                  </label>
+                  <select
+                    id="areaId"
+                    className="form-select"
+                    value={formData.areaId}
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.cityId}
+                  >
+                    <option value="">Select Area</option>
+                    {areas.map((area) => (
+                      <option key={area._id} value={area._id}>
+                        {area.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="carImage" className="form-label">
+                    Car Image
+                  </label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    id="carImage"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    required
+                  />
+                </div>
+
+                <div className="d-grid gap-2 mb-3">
+                  <button type="submit" className="btn btn-primary btn-lg">
+                    Sell Car
+                  </button>
+                </div>
+
+                {status && (
+                  <p className="text-center text-danger fw-semibold">{status}</p>
+                )}
+              </form>
             </div>
+          </div>
+        </div>
 
-            <div className="mb-3">
-              <label className="form-label">Transmission Type</label>
-              <select
-                className={`form-select ${errors.transmissionType ? "is-invalid" : ""}`}
-                {...register("transmissionType", { required: "Transmission type is required" })}
-              >
-                <option value="">Select Transmission Type</option>
-                <option value="Manual">Manual</option>
-                <option value="Automatic">Automatic</option>
-                <option value="Semi-Automatic">Semi-Automatic</option>
-              </select>
-              <div className="invalid-feedback">{errors.transmissionType?.message}</div>
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Description</label>
-              <textarea
-                className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                placeholder="Enter car description"
-                rows={3}
-                {...register("description")}
-              ></textarea>
-              <div className="invalid-feedback">{errors.description?.message}</div>
-            </div>
-
-            {[
-              { label: "Select State", name: "stateId", data: states, onChange: getCityByStateId },
-              { label: "Select City", name: "cityId", data: cities, onChange: getAreaByCityId },
-              { label: "Select Area", name: "areaId", data: areas, onChange: null },
-            ].map(({ label, name, data, onChange }) => (
-              <div className="mb-3" key={name}>
-                <label className="form-label">{label}</label>
-                <select
-                  className={`form-select ${errors[name] ? "is-invalid" : ""}`}
-                  {...register(name)}
-                  onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                >
-                  <option value="">{label}</option>
-                  {data?.map((item) => (
-                    <option key={item._id} value={item._id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="invalid-feedback">{errors[name]?.message}</div>
-              </div>
-            ))}
-
-            <div className="mb-4">
-              <label className="form-label">Car Image</label>
-              <input
-                type="file"
-                className={`form-control ${errors.carURL ? "is-invalid" : ""}`}
-                {...register("carURL", { required: "Image is required" })}
-              />
-              <div className="invalid-feedback">{errors.carURL?.message}</div>
-            </div>
-
-            <button type="submit" className="btn btn-primary w-100 py-2">
-              Sell Car
-            </button>
-          </form>
+        <div className="container mt-5 text-center text-muted">
+          <p>© 2025 Vehicle Vault. All rights reserved.</p>
         </div>
       </div>
-    </div>
+    </>
   );
 };
